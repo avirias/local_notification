@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'model/notification_model.dart';
 
 class NotificationHelper {
-
   static final NotificationHelper _instance = NotificationHelper._internal();
+
   factory NotificationHelper() => _instance;
   FlutterLocalNotificationsPlugin _fln;
 
@@ -31,9 +31,7 @@ class NotificationHelper {
 
   _initializePlatformSpecifics() {
     var initializationSettingsAndroid =
-        AndroidInitializationSettings(
-          "ic_launcher"
-        );
+        AndroidInitializationSettings("ic_launcher");
     var initializationSettingsIOS = IOSInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -48,29 +46,19 @@ class NotificationHelper {
         initializationSettingsAndroid, initializationSettingsIOS);
   }
 
-  void _requestIOSPermissions() {
-    _fln
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
-  }
+  void _requestIOSPermissions() => _fln
+      .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>()
+      ?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-  _setListenerForLowerVersions(Function onNotificationInLowerVersions) {
-    _didReceiveLocalNotificationSubject.listen((receivedNotification) {
-      onNotificationInLowerVersions(receivedNotification);
-    });
-  }
-
-  setOnNotificationClick(Function(String) onNotificationClick) async {
-    await _fln.initialize(_initializationSettings,
-        onSelectNotification: (String payload) async {
-      onNotificationClick(payload);
-    });
-  }
+  setOnNotificationClick(Function(String) onNotificationClick) async =>
+      await _fln.initialize(_initializationSettings,
+          onSelectNotification: (String payload) async =>
+              onNotificationClick(payload));
 
   Future<void> showNotification(
       {@required NotificationModel notification,
@@ -84,27 +72,22 @@ class NotificationHelper {
   }
 
   Future<void> createNotificationChannel(
-      {@required AndroidNotificationChannel notificationChannel}) async {
-    await _fln
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(notificationChannel);
-  }
+          {@required NotificationChannel notificationChannel}) async =>
+      await _fln
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(notificationChannel.toChannel());
 
-  Future<void> deleteNotificationChannel({@required String channelId}) async {
-    await _fln
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.deleteNotificationChannel(channelId);
-  }
+  Future<void> deleteNotificationChannel({@required String channelId}) async =>
+      await _fln
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.deleteNotificationChannel(channelId);
 
-  Future<void> cancelAllNotifications() async {
-    await _fln.cancelAll();
-  }
+  Future<void> cancelAllNotifications() async => await _fln.cancelAll();
 
-  Future<void> cancelNotificationById({@required int id})async {
-    await _fln.cancel(id);
-  }
+  Future<void> cancelNotificationById({@required int id}) async =>
+      await _fln.cancel(id);
 
   Future<List<NotificationModel>> checkPendingNotificationRequests() async {
     var pendingRequests = await _fln.pendingNotificationRequests();
@@ -132,21 +115,14 @@ class ReceivedNotification {
 extension _channelToDetail on NotificationChannel {
   AndroidNotificationDetails toDetail() {
     return AndroidNotificationDetails(
-      this.channelId,
-      this.channelName,
-      this.channelDescription,
-      icon: "ic_launcher"
-    );
+        this.channelId, this.channelName, this.channelDescription,
+        icon: "ic_launcher");
   }
 }
 
-extension on AndroidNotificationChannel {
-  NotificationChannel toChannel(){
-    return NotificationChannel(
-      channelId: this.id,
-      channelName: this.name,
-      channelDescription: this.description
-    );
+extension _channelToAndroidChannel on NotificationChannel {
+  AndroidNotificationChannel toChannel() {
+    return AndroidNotificationChannel(
+        this.channelId, this.channelName, this.channelDescription);
   }
 }
-
